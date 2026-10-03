@@ -3495,11 +3495,14 @@ int C_BaseAnimating::InternalDrawModel( int flags )
 	matrix3x4_t *pBoneToWorld = NULL;
 	bool bMarkAsDrawn = modelrender->DrawModelSetup( *pInfo, &state, NULL, &pBoneToWorld );
 	
-	// Scale the base transform if we don't have a bone hierarchy
+	// Static props and merged bones bypass ApplyBoneMatrixTransform.
+	// Animated single-bone models have already been scaled there.
 	if ( IsModelScaled() )
 	{
 		CStudioHdr *pHdr = GetModelPtr();
-		if ( pHdr && pBoneToWorld && pHdr->numbones() == 1 )
+		if ( pHdr && pBoneToWorld && pHdr->numbones() == 1 &&
+			( ( pHdr->flags() & STUDIOHDR_FLAGS_STATIC_PROP ) ||
+			  ( m_pBoneMergeCache && m_pBoneMergeCache->IsBoneMerged( 0 ) ) ) )
 		{
 			// Scale the bone to world at this point
 			const float flScale = GetModelScale();
